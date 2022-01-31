@@ -205,7 +205,9 @@ public:
 		read_to(buff,size);
 		return buff;
 	}
-
+     
+    //When you rewrite_string(), the \0 will
+	//not be includedin the file
 	file& rewrite_string(std::string str){
 		if (!opened){
 				std::cerr
@@ -214,7 +216,7 @@ public:
 				return *(this);
 		}
 		const char * c_str = str.c_str();
-		rewrite(c_str,strlen(c_str) + 1);
+		rewrite(c_str,strlen(c_str));
 		return *(this);
 	}
 
@@ -226,8 +228,17 @@ public:
 				return "";
 		}
 		if (!get_size())return "";
-		char * c_str = (char*)read();
-		*(c_str + get_size() - 1) = '\0';
+		char * c_str = 
+				(char*)malloc(get_size() + 1);
+		//Extra one bite is malloced to 
+		//storage /0
+		if (!c_str){
+		    std::cerr<<"failed to malloc"
+                    <<std::endl;
+		    exit(-1);
+        }
+		read_to(c_str,get_size());
+		*(c_str + get_size()) = '\0';
 		//Set the end of temp data as \0,
 		//in order to prevent getting a string
 		//that is longger than the file
@@ -243,7 +254,8 @@ public:
 					<<std::endl;
 				return *(this);
 		}
-		rewrite_string(read_string()+str);
+		//rewrite_string(read_string()+str);
+		add(str.c_str(),str.size());
 		return *(this);
 	}
 
